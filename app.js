@@ -208,10 +208,9 @@
           event.flag === 'decision' ? 'A definir' : formatMonth(event.target)
         ])},
       {heading:'Notas e referência',lines:[
-        'As datas são orientadoras; reavaliar perante crescimento ou alteração morfológica.',
+        'As datas são orientadoras; reavaliar perante crescimento ou alteração morfológica. Esta ferramenta é de apoio à decisão e não substitui o juízo clínico.',
         'Fora do âmbito: idade inferior a 35 anos, TC de rastreio, imunossupressão ou neoplasia primária conhecida.',
-        'MacMahon H et al. Radiology. 2017;284:228-243. DOI: 10.1148/radiol.2017161659.',
-        'Ferramenta de apoio à decisão. Não substitui o juízo clínico.'
+        'MacMahon H et al. Radiology. 2017;284:228-243. DOI: 10.1148/radiol.2017161659.'
       ]}
     ];
     const button = $('print-plan');
