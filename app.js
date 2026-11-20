@@ -82,6 +82,41 @@
     }));
   }
 
+  function renderPrintReport({state,plan,schedule,baseline}){
+    const morphologies={solid:'Sólido',partsolid:'Parcialmente sólido',groundglass:'Não sólido (vidro despolido puro)'};
+    const dimensions={small:'<6 mm',medium:'6–8 mm',large:'>8 mm'};
+    const validBaseline=/^\d{4}-(0[1-9]|1[0-2])$/.test(baseline);
+    const fields=[
+      ['Morfologia',morphologies[state.morph]],
+      ['Dimensão média',dimensions[state.size]],
+      ['Número de nódulos',state.number==='single'?'Solitário':'Múltiplos']
+    ];
+    if(state.morph==='solid') fields.push(['Estratificação de risco',state.risk==='high'?'Alto risco':'Baixo risco']);
+    if(state.morph==='partsolid' && state.size!=='small') fields.push(['Componente sólida',state.component==='under6'?'<6 mm':state.component==='atleast6'?'≥6 mm':'Não caracterizada']);
+
+    $('print-parameters').innerHTML=fields.map(([label,value]) =>
+      `<div class="report-parameter"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+    $('print-baseline').textContent=validBaseline?formatMonth(baseline):'Não indicada';
+    $('print-created').textContent=new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'long',year:'numeric'}).format(new Date());
+    $('print-status').textContent=plan.status;
+    $('print-title').textContent=plan.title;
+    $('print-description').textContent=plan.description;
+    const recommendation=$('print-title').closest('.report-recommendation');
+    recommendation.dataset.tone=plan.tone;
+    const notice=$('print-notice');
+    notice.hidden=!plan.notice;
+    notice.textContent=plan.notice;
+
+    const badges={optional:'Opcional',conditional:'Condicional',decision:'Decisão clínica',required:'Recomendado'};
+    const rows=validBaseline?
+      `<tr><td><strong>TC inicial</strong></td><td>${esc(formatMonth(baseline))}</td><td>—</td><td>Referência</td></tr>`:'';
+    $('print-schedule').innerHTML=rows+schedule.map(event=>
+      `<tr><td><strong>${esc(event.title)}</strong></td><td>${esc(monthRange(event.from,event.to))}</td><td>${event.flag==='decision'?'—':esc(formatMonth(event.target))}</td><td>${esc(badges[event.flag]||'Recomendado')}</td></tr>`).join('');
+    const empty=$('print-empty');
+    empty.hidden=!!schedule.length && validBaseline;
+    empty.textContent=!validBaseline?'Indique o mês e o ano da TC inicial para calcular as datas de controlo.':plan.empty;
+  }
+
   function render(preserve = false){
     const state = getSelection();
     riskSection.classList.toggle('hidden',state.morph !== 'solid');
@@ -108,6 +143,7 @@
     noticeBox.textContent=notice;
     renderTimeline(schedule,baseline,plan.empty);
     lastRendered={state,plan,schedule,baseline};
+    renderPrintReport(lastRendered);
   }
 
   function describePlan({state,plan,schedule,baseline}){
@@ -144,6 +180,13 @@
     try{await navigator.clipboard.writeText(describePlan(lastRendered));showToast('Plano copiado para a área de transferência.');}
     catch{showToast('Não foi possível copiar. Utilize a opção Imprimir.');}
   });
-  $('print-plan').addEventListener('click',() => window.print());
+  $('print-plan').addEventListener('click',() => {
+    if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(baselineInput.value)) {
+      showToast('Indique a data da TC inicial antes de exportar.');
+      baselineInput.focus();
+      return;
+    }
+    window.print();
+  });
   render();
 })();
