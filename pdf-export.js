@@ -144,6 +144,35 @@
       }
       return cursor-10;
     }
+    function notesSection(section,x,top,width){
+      let cursor=top-17;
+      label('04',x+14,cursor,accent,8);
+      page.drawText('Notas clínicas e referência',{x:x+41,y:cursor-1,size:10.6,font:bold,color:ink});
+      cursor-=21;
+      page.drawLine({start:{x:x+14,y:cursor+5},end:{x:x+width-14,y:cursor+5},thickness:.6,color:line});
+      cursor-=13;
+      const entries=(section.lines||[]).filter(Boolean);
+      // Texto clínico e bibliografia são blocos diferentes, nunca campos de formulário.
+      for(let i=0;i<entries.length;i++){
+        const raw=tidy(entries[i]);
+        const isReference=/MacMahon|DOI:/.test(raw);
+        if(i===1&&raw.includes(':')){
+          const cut=raw.indexOf(':');
+          label(raw.slice(0,cut),x+14,cursor,mid,7.5);
+          cursor-=13;
+          for(const lineText of wrap(raw.slice(cut+1).trim(),regular,8.8,width-28)){
+            page.drawText(lineText,{x:x+14,y:cursor,size:8.8,font:regular,color:ink});cursor-=12.5;
+          }
+        }else{
+          if(isReference){cursor-=4;page.drawLine({start:{x:x+14,y:cursor+4},end:{x:x+width-14,y:cursor+4},thickness:.5,color:line});cursor-=10;label('Referência científica',x+14,cursor,mid,7.3);cursor-=13;}
+          for(const lineText of wrap(raw,regular,isReference?8.1:8.8,width-28)){
+            page.drawText(lineText,{x:x+14,y:cursor,size:isReference?8.1:8.8,font:regular,color:isReference?mid:ink});cursor-=12.5;
+          }
+        }
+        cursor-=9;
+      }
+      return cursor;
+    }
     function hero(section,top){
       const entries=(section.lines||[]).filter(Boolean);
       const summary=wrap(entries[0]||'',bold,17,CW-40);
@@ -176,12 +205,12 @@
       const item=sections[0],data=(item.lines||[]).filter(Boolean);
       const first={heading:item.heading,lines:data.slice(0,Math.ceil(data.length/2))};
       const second={heading:'Perfil do achado',lines:data.slice(Math.ceil(data.length/2))};
-      const a=boxSection(first,M,y,half,1),b=boxSection(second,M+half+G,y,half,1);
+      const a=boxSection(first,M,y,half,1),b=boxSection(second,M+half+G,y,half,2);
       y=Math.min(a,b)-14;
       ensure(135);
       y=tableSection(sections[2],M,y,CW,3)-8;
       ensure(130);
-      y=boxSection(sections[3],M,y,CW,4);
+      y=notesSection(sections[3],M,y,CW);
     }
     const bytes=await pdf.save();
     const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
