@@ -1,96 +1,72 @@
-(function () {
-  'use strict';
-  // Produção no dispositivo, sem transmitir informação clínica.
-  const normalize = value => String(value ?? '').replace(/≥/g, '>=').replace(/≤/g, '<=')
-    .replace(/[−–—]/g, '-').replace(/[•·]/g, '-').replace(/→/g, '->')
-    .replace(/Δ/g, 'Delta').replace(/[\u00a0\u202f]/g, ' ')
-    .replace(/[^\x20-\x7e\xa0-\xff\n]/g, '');
-
-  async function createClinicalPDF({title, subtitle, sections, filename, logo}) {
-    if (!window.PDFLib) throw new Error('O módulo PDF não está disponível.');
-    const {PDFDocument, StandardFonts, rgb} = window.PDFLib;
-    const pdf = await PDFDocument.create();
-    pdf.setTitle(normalize(title));
-    pdf.setSubject('Relatório clínico de apoio à decisão');
-    pdf.setCreator('Ferramenta clínica local');
-    const regular = await pdf.embedFont(StandardFonts.Helvetica);
-    const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-    let icon = null;
-    if (logo) {
-      try { const response = await fetch(logo); if (response.ok) icon = await pdf.embedPng(await response.arrayBuffer()); }
-      catch { /* Sem logótipo, o PDF continua disponível. */ }
-    }
-    const C = {
-      deep: rgb(.055,.18,.225), teal: rgb(.055,.52,.45), mint: rgb(.86,.96,.925),
-      ink: rgb(.10,.22,.26), muted: rgb(.39,.48,.51), line: rgb(.84,.89,.89),
-      paper: rgb(.975,.988,.985), white: rgb(1,1,1)
-    };
-    const W=595.28,H=841.89,L=45,R=W-L,WIDTH=R-L;
-    const brand=String(title).split(' - ')[0].trim();
-    let page,y,pageNo=0;
-
-    function wrap(value,font,size,maxWidth) {
-      const lines=[];
-      for(const paragraph of normalize(value).split('\n')) {
-        if(!paragraph.trim()){lines.push('');continue;}
-        let current='';
-        for(const word of paragraph.trim().split(/\s+/)) {
-          const next=current?`${current} ${word}`:word;
-          if(font.widthOfTextAtSize(next,size)<=maxWidth){current=next;continue;}
-          if(current)lines.push(current);
-          current=word;
-          while(current.length>1 && font.widthOfTextAtSize(current,size)>maxWidth){
-            let cut=current.length-1;
-            while(cut>1 && font.widthOfTextAtSize(current.slice(0,cut),size)>maxWidth)cut--;
-            lines.push(current.slice(0,cut));current=current.slice(cut);
-          }
-        }
-        if(current)lines.push(current);
-      }
-      return lines;
-    }
-    function addPage(){
-      page=pdf.addPage([W,H]);pageNo++;y=H-45;
-      page.drawRectangle({x:0,y:H-7,width:W,height:7,color:C.deep});
-      page.drawRectangle({x:0,y:H-7,width:138,height:7,color:C.teal});
-      page.drawLine({start:{x:L,y:48},end:{x:R,y:48},thickness:.7,color:C.line});
-      page.drawText('FERRAMENTA DE APOIO À DECISÃO CLÍNICA',{x:L,y:31,size:7.4,font:regular,color:C.muted});
-      page.drawText(String(pageNo),{x:R-9,y:31,size:8,font:bold,color:C.muted});
-    }
-    addPage();
-    const bandY=H-185;
-    page.drawRectangle({x:L,y:bandY,width:WIDTH,height:140,color:C.deep});
-    page.drawRectangle({x:L,y:bandY,width:5,height:140,color:C.teal});
-    if(icon)page.drawImage(icon,{x:L+21,y:bandY+79,width:43,height:43});
-    else{page.drawRectangle({x:L+21,y:bandY+79,width:43,height:43,color:C.teal});page.drawText(brand.slice(0,1),{x:L+34,y:bandY+90,size:23,font:bold,color:C.white});}
-    page.drawText(normalize(brand),{x:L+75,y:bandY+99,size:17,font:bold,color:C.white});
-    page.drawText('RELATÓRIO CLÍNICO',{x:L+75,y:bandY+83,size:8,font:bold,color:C.mint});
-    const heading=normalize(title.slice(brand.length).replace(/^\s*-\s*/,''));
-    wrap(heading,bold,15,WIDTH-48).slice(0,2).forEach((line,i)=>page.drawText(line,{x:L+22,y:bandY+49-i*18,size:15,font:bold,color:C.white}));
-    if(subtitle){const sub=wrap(subtitle,regular,8.7,WIDTH-48)[0]||'';page.drawText(sub,{x:L+22,y:bandY+15,size:8.7,font:regular,color:C.mint});}
-    y=bandY-24;
-
-    sections.forEach((section,index)=>{
-      const highlight=section.heading==='Conclusão'||section.heading==='Recomendação';
-      const rows=(section.lines||[]).filter(v=>v!==null&&v!==undefined&&String(v).trim()).map(value=>wrap(value,regular,9.7,WIDTH-56));
-      const headingLines=wrap(section.heading,bold,10.5,WIDTH-78);
-      const total=35+headingLines.length*14+rows.reduce((s,r)=>s+r.length*14.7+5,0);
-      if(total>y-66)addPage();
-      const top=y,bottom=y-total;
-      page.drawRectangle({x:L,y:bottom,width:WIDTH,height:total,color:highlight?C.mint:C.paper});
-      page.drawRectangle({x:L,y:bottom,width:highlight?4:2,height:total,color:highlight?C.teal:C.line});
-      let cursor=top-23;
-      page.drawText(String(index+1).padStart(2,'0'),{x:L+19,y:cursor,size:8.5,font:bold,color:C.teal});
-      for(const line of headingLines){page.drawText(line,{x:L+47,y:cursor,size:10.5,font:bold,color:C.ink});cursor-=14;}
-      cursor-=8;
-      for(const row of rows){for(const line of row){if(line)page.drawText(line,{x:L+27,y:cursor,font:regular,size:9.7,color:C.ink});cursor-=14.7;}cursor-=5;}
-      y=bottom-15;
-    });
-    const bytes=await pdf.save();
-    const blob=new Blob([bytes],{type:'application/pdf'});
-    const url=URL.createObjectURL(blob),link=document.createElement('a');
-    link.href=url;link.download=filename||'relatorio.pdf';document.body.appendChild(link);link.click();link.remove();
-    window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+(function(){
+ 'use strict';
+ const clean=s=>String(s??'').replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/[−–—]/g,'-').replace(/[•·]/g,'-').replace(/→/g,'->').replace(/Δ/g,'Delta').replace(/[^\x20-\x7e\xa0-\xff\n]/g,'');
+ async function createClinicalPDF({title,subtitle,sections,filename,logo}){
+  if(!window.PDFLib)throw Error('Módulo PDF indisponível.');
+  const {PDFDocument,StandardFonts,rgb}=window.PDFLib,pdf=await PDFDocument.create();
+  pdf.setTitle(clean(title));pdf.setSubject('Relatório clínico');pdf.setCreator('Ferramenta clínica local');
+  const normal=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+  let icon;try{if(logo){const r=await fetch(logo);if(r.ok)icon=await pdf.embedPng(await r.arrayBuffer());}}catch{}
+  const c={ink:rgb(.12,.23,.28),muted:rgb(.42,.49,.52),teal:rgb(.07,.45,.42),pale:rgb(.93,.965,.955),line:rgb(.82,.87,.87),white:rgb(1,1,1)};
+  const W=595.28,H=841.89,L=48,R=W-L,CW=R-L,brand=title.split(' - ')[0],reportTitle=title.slice(brand.length).replace(/^\s*-\s*/,'');
+  let page,y,n=0;
+  function wrap(value,font,size,width){
+   const out=[];for(const p of clean(value).split('\n')){let line='';for(const word of p.split(/\s+/).filter(Boolean)){
+    const next=line?line+' '+word:word;if(font.widthOfTextAtSize(next,size)<=width){line=next;continue;}
+    if(line)out.push(line);line=word;while(line.length>1&&font.widthOfTextAtSize(line,size)>width){let k=line.length-1;while(k>1&&font.widthOfTextAtSize(line.slice(0,k),size)>width)k--;out.push(line.slice(0,k));line=line.slice(k);}
+   }if(line)out.push(line);}return out;
   }
-  window.createClinicalPDF=createClinicalPDF;
+  function newPage(){
+   page=pdf.addPage([W,H]);n++;y=H-48;
+   page.drawLine({start:{x:L,y:48},end:{x:R,y:48},thickness:.6,color:c.line});
+   page.drawText(clean(brand)+'  |  Apoio à decisão clínica',{x:L,y:31,size:7.5,font:normal,color:c.muted});
+   page.drawText(String(n),{x:R-8,y:31,size:8,font:normal,color:c.muted});
+   if(n>1){page.drawText(clean(brand)+'  /  Continuação',{x:L,y:H-47,size:10,font:bold,color:c.teal});y=H-72;}
+  }
+  function ensure(h){if(y-h<65)newPage();}
+  function write(value,{font=normal,size=9.5,color=c.ink,height=14,after=0,indent=0}={}){
+   for(const line of wrap(value,font,size,CW-indent)){ensure(height);page.drawText(line,{x:L+indent,y,font,size,color});y-=height;}y-=after;
+  }
+  function heading(name){
+   ensure(38);y-=13;page.drawText(clean(name).toUpperCase(),{x:L,y,size:9,font:bold,color:c.teal});y-=10;
+   page.drawLine({start:{x:L,y},end:{x:R,y},thickness:.65,color:c.line});y-=17;
+  }
+  function table(section){
+   const cols=section.columns,rows=section.table;if(!cols?.length||!rows?.length)return;
+   const widths=section.widths||cols.map(()=>CW/cols.length);
+   function row(cells,head){
+    const size=head?8.2:8.7,font=head?bold:normal;
+    const count=Math.max(1,...cells.map((v,i)=>wrap(v,font,size,widths[i]-16).length));
+    const height=Math.max(25,count*12.5+13);ensure(height+3);
+    if(head)page.drawRectangle({x:L,y:y-height+9,width:CW,height,color:c.pale});
+    page.drawLine({start:{x:L,y:y-height+9},end:{x:R,y:y-height+9},thickness:.5,color:c.line});
+    let x=L;cells.forEach((v,i)=>{wrap(v,font,size,widths[i]-16).forEach((line,j)=>page.drawText(line,{x:x+8,y:y-10-j*12.5,size,font,color:head?c.teal:c.ink}));x+=widths[i];});y-=height;
+   }
+   row(cols,true);rows.forEach(cells=>row(cells,false));y-=8;
+  }
+  newPage();
+  if(icon)page.drawImage(icon,{x:L,y:H-94,width:32,height:32});
+  page.drawText(clean(brand),{x:icon?L+43:L,y:H-72,font:bold,size:15,color:c.ink});
+  page.drawText('RELATÓRIO CLÍNICO',{x:icon?L+43:L,y:H-87,font:bold,size:7.6,color:c.teal});
+  page.drawLine({start:{x:L,y:H-108},end:{x:R,y:H-108},thickness:1.2,color:c.teal});
+  y=H-136;write(reportTitle,{font:bold,size:17,height:22,after:2});
+  if(subtitle)write(subtitle,{size:8.6,height:13,color:c.muted,after:13});
+  for(const section of sections){
+   heading(section.heading);
+   const lines=(section.lines||[]).filter(v=>v!=null&&String(v).trim());
+   const emph=section.heading==='Conclusão'||section.heading==='Recomendação';
+   if(emph&&lines.length){
+    const parts=wrap(lines.shift(),bold,12,CW-26),h=parts.length*16+19;ensure(h+6);
+    page.drawRectangle({x:L,y:y-h+8,width:CW,height:h,color:c.pale});
+    page.drawRectangle({x:L,y:y-h+8,width:3,height:h,color:c.teal});
+    parts.forEach((line,i)=>page.drawText(line,{x:L+13,y:y-12-i*16,font:bold,size:12,color:c.ink}));y-=h+5;
+   }
+   if(section.table)table(section);
+   for(const line of lines)write(line,{after:3});y-=6;
+  }
+  const bytes=await pdf.save(),url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  const a=document.createElement('a');a.href=url;a.download=filename||'relatorio.pdf';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }
+ window.createClinicalPDF=createClinicalPDF;
 })();
