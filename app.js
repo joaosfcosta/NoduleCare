@@ -180,13 +180,43 @@
     try{await navigator.clipboard.writeText(describePlan(lastRendered));showToast('Plano copiado para a área de transferência.');}
     catch{showToast('Não foi possível copiar. Utilize a opção Imprimir.');}
   });
-  $('print-plan').addEventListener('click',() => {
+  $('print-plan').addEventListener('click',async () => {
     if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(baselineInput.value)) {
       showToast('Indique a data da TC inicial antes de exportar.');
       baselineInput.focus();
       return;
     }
-    window.print();
+    if (!lastRendered) return;
+    const {state,plan,schedule,baseline} = lastRendered;
+    const today = new Intl.DateTimeFormat('pt-PT',{day:'numeric',month:'long',year:'numeric'}).format(new Date());
+    const sections = [
+      {heading:'Características do nódulo',lines:[
+        `TC inicial: ${formatMonth(baseline)}.`,
+        `Morfologia: ${state.morph === 'solid' ? 'Sólido' : state.morph === 'partsolid' ? 'Parcialmente sólido' : 'Vidro despolido puro'}.`,
+        `Dimensão: ${state.size === 'small' ? '<6 mm' : state.size === 'medium' ? '6-8 mm' : '>8 mm'}.`,
+        `Número: ${state.number === 'single' ? 'Solitário' : 'Múltiplos'}.`,
+        ...(state.morph === 'solid' ? [`Estratificação: ${state.risk === 'high' ? 'Alto risco' : 'Baixo risco'}.`] : []),
+        ...(state.morph === 'partsolid' ? [`Componente sólida: ${state.component === 'atleast6' ? '>=6 mm' : state.component === 'under6' ? '<6 mm' : 'não caracterizada'}.`] : [])
+      ]},
+      {heading:'Recomendação',lines:[plan.title,plan.description,...(plan.notice?[plan.notice]:[])]},
+      {heading:'Calendário de vigilância',lines: schedule.length ? schedule.map(event =>
+        `${event.title}: ${monthRange(event.from,event.to)}${event.flag === 'optional' ? ' (opcional)' : event.flag === 'conditional' ? ' (condicional)' : event.flag === 'decision' ? ' (decisão clínica)' : ''}${event.flag !== 'decision' ? '; mês escolhido: ' + formatMonth(event.target) : ''}.`) : [plan.empty]},
+      {heading:'Notas e referência',lines:[
+        'As datas são orientadoras; reavaliar perante crescimento ou alteração morfológica.',
+        'Fora do âmbito: idade inferior a 35 anos, TC de rastreio, imunossupressão ou neoplasia primária conhecida.',
+        'MacMahon H et al. Radiology. 2017;284:228-243. DOI: 10.1148/radiol.2017161659.',
+        'Ferramenta de apoio à decisão. Não substitui o juízo clínico.'
+      ]}
+    ];
+    const button = $('print-plan');
+    button.disabled = true;
+    try {
+      await window.createClinicalPDF({title:'NoduleCare - Plano de vigilância',subtitle:`Fleischner Society 2017 | Emitido em ${today}`,sections,filename:'NoduleCare-plano.pdf'});
+      showToast('PDF gerado. Consulte as transferências ou a app Ficheiros.');
+    } catch(error) {
+      console.error('Falha ao gerar PDF',error);
+      showToast('Não foi possível gerar o PDF. Tente abrir a app no Safari.');
+    } finally { button.disabled = false; }
   });
   render();
 })();
