@@ -6,7 +6,7 @@
   const {PDFDocument,StandardFonts,rgb}=window.PDFLib,pdf=await PDFDocument.create();
   pdf.setTitle(clean(title));pdf.setSubject('Relatório clínico');pdf.setCreator('Ferramenta clínica local');
   const normal=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
-  const display=await pdf.embedFont(StandardFonts.TimesRomanBold);
+  const display=bold;
   let icon;try{if(logo){const r=await fetch(logo);if(r.ok)icon=await pdf.embedPng(await r.arrayBuffer());}}catch{}
   const c={ink:rgb(.10,.16,.22),muted:rgb(.39,.45,.50),teal:rgb(.16,.23,.32),pale:rgb(.949,.960,.971),line:rgb(.82,.85,.88),white:rgb(1,1,1),soft:rgb(.978,.982,.986)};
   const W=595.28,H=841.89,L=48,R=W-L,CW=R-L,brand=title.split(' - ')[0],reportTitle=title.slice(brand.length).replace(/^\s*-\s*/,'');
