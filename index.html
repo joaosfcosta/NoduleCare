@@ -166,7 +166,7 @@
               <span class="schedule-count" id="schedule-count">0 controlos</span>
             </div>
             <div id="timeline" class="timeline"></div>
-            <div class="timeline-actions"><button type="button" class="action-primary" id="copy-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar plano</button><button type="button" class="action-secondary" id="print-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button></div>
+            <div class="timeline-actions"><button type="button" class="action-primary" id="copy-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar plano</button><button type="button" class="action-secondary" id="print-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Exportar PDF</button></div>
           </div>
 
           <div class="interpretation-card"><span class="interpretation-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.25"/></svg></span><div><h3>Como interpretar o calendário</h3><p>As datas representam <strong>janelas orientadoras, não marcações obrigatórias</strong>. Os controlos subsequentes pressupõem persistência ou estabilidade; crescimento, novas características suspeitas ou contexto clínico relevante exigem reavaliação da conduta.</p></div></div>
@@ -176,6 +176,29 @@
       <footer class="site-footer"><div><strong>Referência científica</strong><p>MacMahon H, et al. Guidelines for Management of Incidental Pulmonary Nodules Detected on CT Images: From the Fleischner Society 2017. <em>Radiology.</em> 2017;284:228–243. <a href="https://doi.org/10.1148/radiol.2017161659" target="_blank" rel="noopener noreferrer">DOI: 10.1148/radiol.2017161659</a></p></div><div class="footer-note">Ferramenta de apoio à decisão para profissionais de saúde. Não substitui a avaliação clínica, a comparação com exames prévios ou a discussão multidisciplinar. Não recolhe nem transmite dados de pacientes.</div></footer>
     </main>
   </div>
+  <section class="print-report" id="print-report">
+    <header class="report-header">
+      <div class="report-brand"><img src="./icons/icon.svg" alt="" class="report-brand-icon"><div><div class="report-brand-name">Nodule<span>Care</span></div><div class="report-brand-subtitle">PNEUMOLOGIA · APOIO À DECISÃO CLÍNICA</div></div></div>
+      <div class="report-guideline">FLEISCHNER SOCIETY<br><strong>GUIDELINES 2017</strong></div>
+    </header>
+    <div class="report-heading"><div class="report-eyebrow">PLANO DE VIGILÂNCIA IMAGIOLÓGICA</div><h1>Controlo evolutivo de nódulos pulmonares</h1><p>Recomendação baseada nas características do achado incidental na TC.</p></div>
+    <div class="report-dates"><div><span>TC INICIAL</span><strong id="print-baseline">—</strong></div><div><span>DOCUMENTO GERADO EM</span><strong id="print-created">—</strong></div></div>
+    <section class="report-section">
+      <h2>01 <span>Caracterização do nódulo</span></h2>
+      <div class="report-parameters" id="print-parameters"></div>
+    </section>
+    <section class="report-section">
+      <h2>02 <span>Orientação clínica</span></h2>
+      <div class="report-recommendation"><div class="report-recommendation-label" id="print-status">FLEISCHNER 2017</div><h3 id="print-title">—</h3><p id="print-description"></p><p class="report-alert" id="print-notice" hidden></p></div>
+    </section>
+    <section class="report-section report-calendar">
+      <h2>03 <span>Calendário de vigilância</span></h2>
+      <table class="report-table"><thead><tr><th>Marco clínico</th><th>Janela recomendada</th><th>Mês planeado</th><th>Natureza</th></tr></thead><tbody id="print-schedule"></tbody></table>
+      <p class="report-empty" id="print-empty" hidden></p>
+      <p class="report-calendar-note">As datas representam janelas orientadoras, não marcações obrigatórias. O mês planeado é editável na aplicação e, por defeito, corresponde ao ponto médio da janela. Os controlos subsequentes pressupõem persistência ou estabilidade; crescimento ou novas características suspeitas exigem reavaliação.</p>
+    </section>
+    <footer class="report-footer"><p><strong>Limitações de aplicabilidade:</strong> não se aplica a pessoas com menos de 35 anos, TC de rastreio de cancro do pulmão, neoplasia primária conhecida ou imunossupressão.</p><p><strong>Referência:</strong> MacMahon H, et al. <em>Radiology.</em> 2017;284:228–243. doi:10.1148/radiol.2017161659.</p><p class="report-disclaimer">Documento de apoio à decisão para profissionais de saúde. Não substitui a avaliação clínica, a comparação com exames anteriores ou a discussão multidisciplinar. Não constitui relatório de exame imagiológico.</p></footer>
+  </section>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
