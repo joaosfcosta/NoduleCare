@@ -1,0 +1,16 @@
+{
+  "name": "NoduleCare — Vigilância de Nódulos Pulmonares",
+  "short_name": "NoduleCare",
+  "description": "Apoio à vigilância de nódulos pulmonares segundo Fleischner 2017",
+  "lang": "pt-PT",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0c2230",
+  "theme_color": "#0c2230",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

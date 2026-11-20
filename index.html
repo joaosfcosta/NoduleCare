@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c2230">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NoduleCare">
+  <meta name="description" content="Calculadora clínica dos intervalos de vigilância de nódulos pulmonares incidentais segundo as recomendações Fleischner Society 2017.">
+  <title>NoduleCare — Vigilância de Nódulos Pulmonares</title>
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./launch.js"></script>
+  <script defer src="./logic.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="launch-screen" id="launch-screen" aria-hidden="true">
+    <div class="launch-content">
+      <img class="launch-icon" src="./icons/icon.svg" alt="">
+      <div class="launch-wordmark">Nodule<span>Care</span></div>
+      <div class="launch-subtitle">VIGILÂNCIA DE NÓDULOS PULMONARES</div>
+      <div class="launch-progress"><span></span></div>
+    </div>
+  </div>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M24 8v19m0-8-5 7m5-7 5 7"/>
+            <path d="M18 15c-4.6 1.8-8.2 8.7-9.7 16.2-.9 4.2 1.3 8.8 6.4 8.8 5.2 0 8.1-3.4 9.3-7.7V22"/>
+            <path d="M30 15c4.6 1.8 8.2 8.7 9.7 16.2.9 4.2-1.3 8.8-6.4 8.8-5.2 0-8.1-3.4-9.3-7.7V22"/>
+            <circle cx="34.7" cy="26" r="3.5" fill="#74d3c1" stroke="#0a2330" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">Nodule<span>Care</span></div>
+          <div class="brand-caption">PNEUMOLOGIA · FERRAMENTA CLÍNICA</div>
+        </div>
+      </div>
+      <div class="header-right"><span class="header-pill"><span class="live-dot"></span> Fleischner Society · 2017</span><span class="header-mark">Guia de apoio à decisão</span></div>
+    </header>
+
+    <main>
+      <div class="intro">
+        <div class="eyebrow">VIGILÂNCIA IMAGIOLÓGICA</div>
+        <h1>Controlo evolutivo de <em>nódulos pulmonares.</em></h1>
+        <p>Selecione as características do achado incidental. Obtenha a recomendação e as janelas de controlo em mês e ano, calculadas a partir da TC inicial.</p>
+      </div>
+
+      <div class="app-grid">
+        <section class="card controls-card" aria-labelledby="data-title">
+          <div class="section-heading">
+            <span class="section-kicker">01 / Caracterização</span>
+            <h2 id="data-title">Dados do nódulo</h2>
+            <p>Defina os parâmetros observados na TC.</p>
+          </div>
+
+          <fieldset class="control-group">
+            <legend>Morfologia</legend>
+            <div class="morph-grid" id="morphology-group">
+              <label class="morph-option">
+                <input type="radio" name="morphology" value="solid" checked>
+                <span class="morph-card"><span class="nodule-illustration"><svg viewBox="0 0 58 42"><circle cx="29" cy="21" r="13" fill="currentColor"/></svg></span><span class="morph-label">Sólido</span><small>Opacidade densa</small></span>
+              </label>
+              <label class="morph-option">
+                <input type="radio" name="morphology" value="partsolid">
+                <span class="morph-card"><span class="nodule-illustration"><svg viewBox="0 0 58 42"><circle cx="29" cy="21" r="13" fill="currentColor" opacity=".27"/><circle cx="34" cy="21" r="7.5" fill="currentColor"/></svg></span><span class="morph-label">Subsólido</span><small>Parcialmente sólido</small></span>
+              </label>
+              <label class="morph-option">
+                <input type="radio" name="morphology" value="groundglass">
+                <span class="morph-card"><span class="nodule-illustration"><svg viewBox="0 0 58 42"><circle cx="29" cy="21" r="13" fill="currentColor" opacity=".27"/><circle cx="29" cy="21" r="9.5" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2.5 2.5" opacity=".7"/></svg></span><span class="morph-label">Não sólido</span><small>Vidro despolido puro</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group">
+            <legend>Dimensão média</legend>
+            <div class="segmented size-grid" id="size-group">
+              <label><input type="radio" name="size" value="small"><span>&lt; 6 <small>mm</small></span></label>
+              <label><input type="radio" name="size" value="medium" checked><span>6–8 <small>mm</small></span></label>
+              <label><input type="radio" name="size" value="large"><span>&gt; 8 <small>mm</small></span></label>
+            </div>
+            <p class="helper">Média dos eixos longo e curto, arredondada ao milímetro.</p>
+          </fieldset>
+
+          <div class="control-group component-box hidden" id="solid-component-section">
+            <label class="group-label" for="solid-component">Dimensão da componente sólida</label>
+            <select id="solid-component">
+              <option value="unknown">Selecionar componente sólida…</option>
+              <option value="under6">&lt; 6 mm</option>
+              <option value="atleast6">≥ 6 mm</option>
+            </select>
+            <p class="helper">Obrigatória em nódulos parcialmente sólidos ≥6 mm.</p>
+          </div>
+
+          <fieldset class="control-group two-options">
+            <legend>Número de nódulos</legend>
+            <div class="segmented" id="number-group">
+              <label><input type="radio" name="number" value="single" checked><span>Solitário</span></label>
+              <label><input type="radio" name="number" value="multiple"><span>Múltiplos</span></label>
+            </div>
+            <p class="helper" id="multiple-hint" hidden>Em múltiplos nódulos, considere o mais suspeito, que pode não ser o maior.</p>
+          </fieldset>
+
+          <fieldset class="control-group risk-group" id="risk-section">
+            <legend>Estratificação de risco</legend>
+            <div class="segmented" id="risk-group">
+              <label><input type="radio" name="risk" value="low" checked><span>Baixo risco</span></label>
+              <label><input type="radio" name="risk" value="high"><span>Alto risco</span></label>
+            </div>
+            <details class="details-panel" id="risk-details">
+              <summary>Critérios que aumentam o risco <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg></summary>
+              <p>Considere conjuntamente os fatores clínicos e imagiológicos. A presença isolada de um fator não define automaticamente alto risco.</p>
+              <ul class="applicability-list">
+                <li>História de tabagismo</li>
+                <li>Idade avançada</li>
+                <li>Margens irregulares ou espiculadas</li>
+                <li>Localização nos lobos superiores</li>
+                <li>Enfisema ou fibrose pulmonar</li>
+                <li>História familiar de cancro do pulmão</li>
+                <li>Exposição a asbestos, radão ou urânio</li>
+              </ul>
+              <div class="risk-note">Risco baixo: probabilidade estimada de malignidade &lt;5%. A guideline agrega risco intermédio e elevado na categoria “alto risco” (≥5%).</div>
+            </details>
+          </fieldset>
+
+          <div class="control-group date-group">
+            <label class="group-label" for="baseline-date">Data da TC inicial</label>
+            <div class="date-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg><input type="month" id="baseline-date" aria-label="Mês e ano da TC inicial" required></div>
+            <p class="helper">As datas seguintes são calculadas a partir deste mês.</p>
+          </div>
+
+          <details class="details-panel exclusion-panel" id="exclusions">
+            <summary>Limitações de aplicabilidade <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg></summary>
+            <p>As recomendações Fleischner 2017 não se aplicam às seguintes situações:</p>
+            <ul class="applicability-list">
+              <li>Idade inferior a 35 anos</li>
+              <li>TC de rastreio de cancro do pulmão</li>
+              <li>Neoplasia primária conhecida</li>
+              <li>Imunossupressão</li>
+            </ul>
+          </details>
+        </section>
+
+        <section class="results-col" aria-live="polite" aria-atomic="false">
+          <div class="card recommendation-card" id="recommendation-panel">
+            <div class="recommendation-overline"><span class="section-kicker">02 / Orientação clínica</span><span class="recommendation-status" id="plan-status">FLEISCHNER 2017</span></div>
+            <div class="recommendation-content">
+              <div class="recommendation-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4.5 12.5 5.2 5L20 6"/></svg></div>
+              <div><p class="rec-label">Conduta recomendada</p><h2 id="recommendation-title">TC aos 6–12 meses</h2><p class="rec-description" id="recommendation-description">Depois, considerar TC aos 18–24 meses, se o nódulo permanecer estável.</p></div>
+            </div>
+            <div class="selection-tags" id="selection-tags"></div>
+            <div class="clinical-notice hidden" id="clinical-notice"></div>
+          </div>
+
+          <div class="card timeline-card">
+            <div class="timeline-heading">
+              <div><span class="section-kicker">03 / Planeamento</span><h2>Calendário de vigilância</h2><p>Janelas recomendadas a partir da TC inicial.</p></div>
+              <span class="schedule-count" id="schedule-count">0 controlos</span>
+            </div>
+            <div id="timeline" class="timeline"></div>
+            <div class="timeline-actions"><button type="button" class="action-primary" id="copy-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar plano</button><button type="button" class="action-secondary" id="print-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>Imprimir</button></div>
+          </div>
+
+          <div class="interpretation-card"><span class="interpretation-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.25"/></svg></span><div><h3>Como interpretar o calendário</h3><p>As datas representam <strong>janelas orientadoras, não marcações obrigatórias</strong>. Os controlos subsequentes pressupõem persistência ou estabilidade; crescimento, novas características suspeitas ou contexto clínico relevante exigem reavaliação da conduta.</p></div></div>
+        </section>
+      </div>
+
+      <footer class="site-footer"><div><strong>Referência científica</strong><p>MacMahon H, et al. Guidelines for Management of Incidental Pulmonary Nodules Detected on CT Images: From the Fleischner Society 2017. <em>Radiology.</em> 2017;284:228–243. <a href="https://doi.org/10.1148/radiol.2017161659" target="_blank" rel="noopener noreferrer">DOI: 10.1148/radiol.2017161659</a></p></div><div class="footer-note">Ferramenta de apoio à decisão para profissionais de saúde. Não substitui a avaliação clínica, a comparação com exames prévios ou a discussão multidisciplinar. Não recolhe nem transmite dados de pacientes.</div></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
