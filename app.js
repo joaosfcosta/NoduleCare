@@ -211,7 +211,7 @@
     const button = $('print-plan');
     button.disabled = true;
     try {
-      await window.createClinicalPDF({title:'NoduleCare - Plano de vigilância',subtitle:`Fleischner Society 2017 | Emitido em ${today}`,sections,filename:'NoduleCare-plano.pdf'});
+      await window.createClinicalPDF({title:'NoduleCare - Plano de vigilância',subtitle:`Fleischner Society 2017 | Emitido em ${today}`,sections,filename:'NoduleCare-plano.pdf',logo:'./icons/icon-192.png'});
       showToast('PDF gerado. Consulte as transferências ou a app Ficheiros.');
     } catch(error) {
       console.error('Falha ao gerar PDF',error);
