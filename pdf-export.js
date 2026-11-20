@@ -1,88 +1,193 @@
 (function(){
- 'use strict';
- const clean=s=>String(s??'').replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/[−–—]/g,'-').replace(/[•·]/g,'-').replace(/→/g,'->').replace(/Δ/g,'Delta').replace(/[^\x20-\x7e\xa0-\xff\n]/g,'');
- async function createClinicalPDF({title,subtitle,sections,filename,logo}){
-  if(!window.PDFLib)throw Error('Módulo PDF indisponível.');
-  const {PDFDocument,StandardFonts,rgb}=window.PDFLib,pdf=await PDFDocument.create();
-  pdf.setTitle(clean(title));pdf.setSubject('Relatório clínico');pdf.setCreator('Ferramenta clínica local');
-  const normal=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
-  const display=bold;
-  let icon;try{if(logo){const r=await fetch(logo);if(r.ok)icon=await pdf.embedPng(await r.arrayBuffer());}}catch{}
-  const c={ink:rgb(.10,.16,.22),muted:rgb(.39,.45,.50),teal:rgb(.16,.23,.32),pale:rgb(.949,.960,.971),line:rgb(.82,.85,.88),white:rgb(1,1,1),soft:rgb(.978,.982,.986)};
-  const W=595.28,H=841.89,L=48,R=W-L,CW=R-L,brand=title.split(' - ')[0],reportTitle=title.slice(brand.length).replace(/^\s*-\s*/,'');
-  let page,y,n=0;
-  function wrap(value,font,size,width){
-   const out=[];for(const p of clean(value).split('\n')){let line='';for(const word of p.split(/\s+/).filter(Boolean)){
-    const next=line?line+' '+word:word;if(font.widthOfTextAtSize(next,size)<=width){line=next;continue;}
-    if(line)out.push(line);line=word;while(line.length>1&&font.widthOfTextAtSize(line,size)>width){let k=line.length-1;while(k>1&&font.widthOfTextAtSize(line.slice(0,k),size)>width)k--;out.push(line.slice(0,k));line=line.slice(k);}
-   }if(line)out.push(line);}return out;
+  'use strict';
+  // Relatório produzido exclusivamente no navegador.
+  const tidy=value=>String(value??'').replace(/[−–—]/g,'-').replace(/[•·]/g,' · ')
+    .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/→/g,'->').replace(/Δ/g,'Delta')
+    .replace(/[\u00a0\u202f]/g,' ').replace(/[^\x20-\x7e\xa0-\xff\n]/g,'');
+
+  async function createClinicalPDF({title,subtitle,sections,filename,logo}){
+    const lib=window.PDFLib;if(!lib)throw Error('O módulo PDF não está disponível.');
+    const {PDFDocument,StandardFonts,rgb}=lib,pdf=await PDFDocument.create();
+    pdf.setTitle(tidy(title));pdf.setCreator('Ferramenta clínica local');
+    pdf.setSubject('Relatório de apoio à decisão clínica');
+    const regular=await pdf.embedFont(StandardFonts.Helvetica);
+    const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+    let icon=null;
+    try{if(logo){const r=await fetch(logo);if(r.ok)icon=await pdf.embedPng(await r.arrayBuffer());}}catch{}
+    const ink=rgb(.09,.15,.22),mid=rgb(.39,.45,.51),accent=rgb(.19,.38,.57);
+    const line=rgb(.84,.87,.90),ice=rgb(.945,.963,.976),white=rgb(1,1,1),pale=rgb(.981,.984,.987);
+    const W=595.28,H=841.89,M=43,CW=W-2*M,G=15,half=(CW-G)/2;
+    const brand=title.split(' - ')[0],description=title.slice(brand.length).replace(/^\s*-\s*/,'');
+    let page,pageNo=0,y;
+
+    function wrap(value,font,size,width){
+      const result=[];
+      for(const para of tidy(value).split('\n')){
+        let current='';
+        for(const word of para.trim().split(/\s+/).filter(Boolean)){
+          const trial=current?current+' '+word:word;
+          if(font.widthOfTextAtSize(trial,size)<=width){current=trial;continue;}
+          if(current)result.push(current);current=word;
+          while(current.length>1&&font.widthOfTextAtSize(current,size)>width){
+            let n=current.length-1;while(n>1&&font.widthOfTextAtSize(current.slice(0,n),size)>width)n--;
+            result.push(current.slice(0,n));current=current.slice(n);
+          }
+        }
+        if(current)result.push(current);
+      }return result;
+    }
+    function label(text,x,top,color=mid,size=8.3){
+      page.drawText(tidy(text).toUpperCase(),{x,y:top,size,font:bold,color});
+    }
+    function newPage(){
+      page=pdf.addPage([W,H]);pageNo++;y=H-34;
+      page.drawRectangle({x:0,y:H-4,width:W,height:4,color:ink});
+      page.drawLine({start:{x:M,y:44},end:{x:W-M,y:44},thickness:.65,color:line});
+      label(brand+'  /  Decisão clínica',M,29,mid,7.2);
+      page.drawText(String(pageNo).padStart(2,'0'),{x:W-M-15,y:29,size:7.8,font:bold,color:mid});
+      if(pageNo>1){label(brand+'  /  Continuação',M,H-48,mid,9);y=H-74;}
+    }
+    function fullHeader(){
+      const top=H-39;
+      if(icon)page.drawImage(icon,{x:M,y:top-49,width:43,height:43});
+      label(brand,M+(icon?57:0),top-15,ink,16);
+      label('Relatório clínico  /  uso profissional',M+(icon?57:0),top-31,mid,7.6);
+      label('A4   ·   DIGITAL',W-M-93,top-17,mid,7.5);
+      page.drawLine({start:{x:M,y:top-62},end:{x:W-M,y:top-62},thickness:1,color:ink});
+      page.drawText(tidy(description),{x:M,y:top-92,size:20,font:bold,color:ink});
+      const details=wrap(subtitle||'',regular,9,CW);
+      details.forEach((v,i)=>page.drawText(v,{x:M,y:top-111-i*12.5,size:9,font:regular,color:mid}));
+      y=top-135-(details.length-1)*12.5;
+    }
+    function splitKV(lineValue){
+      const text=tidy(lineValue),match=text.match(/^([^:]{2,42}):\s*(.+)$/);
+      return match&&match[2].length<125&&!match[1].includes('DOI')?[match[1].trim(),match[2].trim()]:null;
+    }
+    function boxSection(section,x,top,width,number){
+      const padding=14,inner=width-2*padding,small=width<300;
+      let cursor=top-17;
+      label(String(number).padStart(2,'0'),x+padding,cursor,accent,8);
+      page.drawText(tidy(section.heading),{x:x+padding+27,y:cursor-1,size:10.6,font:bold,color:ink});
+      cursor-=21;
+      page.drawLine({start:{x:x+padding,y:cursor+5},end:{x:x+width-padding,y:cursor+5},thickness:.6,color:line});
+      cursor-=12;
+      const sectionLines=(section.lines||[]).filter(v=>v!=null&&String(v).trim());
+      for(const item of sectionLines){
+        const pair=splitKV(item);
+        if(pair&&small){
+          const v=wrap(pair[1],regular,8.9,inner);
+          page.drawText(pair[0],{x:x+padding,y:cursor,size:8,font:bold,color:mid});cursor-=12;
+          v.forEach(s=>{page.drawText(s,{x:x+padding,y:cursor,size:8.9,font:regular,color:ink});cursor-=12.4;});
+          cursor-=8;
+        }else if(pair){
+          const keyWidth=width*.34;
+          const vals=wrap(pair[1],regular,9,inner-keyWidth);
+          page.drawText(pair[0],{x:x+padding,y:cursor,size:8.6,font:bold,color:mid});
+          vals.forEach((s,i)=>page.drawText(s,{x:x+padding+keyWidth,y:cursor-i*13,size:9,font:regular,color:ink}));
+          cursor-=Math.max(20,vals.length*13+7);
+          page.drawLine({start:{x:x+padding,y:cursor+8},end:{x:x+width-padding,y:cursor+8},thickness:.35,color:line});
+        }else{
+          const lines=wrap(item,regular,small?8.8:9,inner);
+          lines.forEach(s=>{page.drawText(s,{x:x+padding,y:cursor,size:small?8.8:9,font:regular,color:ink});cursor-=13;});
+          cursor-=7;
+        }
+      }
+      return top-Math.max(62,top-cursor+3);
+    }
+    function tableSection(section,x,top,width,number){
+      let cursor=top-16;
+      label(String(number).padStart(2,'0'),x,cursor,accent,8);
+      page.drawText(tidy(section.heading),{x:x+27,y:cursor-1,size:10.8,font:bold,color:ink});
+      cursor-=21;
+      const cols=section.columns||[],rows=section.table||[];
+      const raw=section.widths||cols.map(()=>1),total=raw.reduce((a,b)=>a+b,0);
+      const widths=raw.map(v=>v*width/total);
+      const row=(cells,header=false,index=0)=>{
+        const size=header?7.5:8.5,font=header?bold:regular;
+        const wrapped=cells.map((v,i)=>wrap(v,font,size,widths[i]-12));
+        const height=Math.max(header?24:25,Math.max(...wrapped.map(v=>v.length),1)*11.4+11);
+        if(header||index%2===0)page.drawRectangle({x,y:cursor-height+7,width,height,color:header?ice:pale});
+        let colx=x;
+        wrapped.forEach((lines,i)=>{lines.forEach((s,j)=>page.drawText(s,{x:colx+6,y:cursor-9-j*11.4,size,font,color:header?mid:ink}));colx+=widths[i];});
+        cursor-=height;
+        page.drawLine({start:{x,y:cursor+7},end:{x:x+width,y:cursor+7},thickness:.4,color:line});
+      };
+      row(cols,true);rows.forEach((r,i)=>row(r,false,i));
+      cursor-=13;
+      for(const item of section.lines||[]){
+        wrap(item,regular,8.7,width).forEach(s=>{page.drawText(s,{x,y:cursor,size:8.7,font:regular,color:mid});cursor-=12;});cursor-=5;
+      }
+      return cursor;
+    }
+    function functionalCompact(section,x,top,width){
+      const pad=14;
+      let cursor=top-17;
+      label('03',x+pad,cursor,accent,8);
+      page.drawText('Função respiratória',{x:x+pad+27,y:cursor-1,size:10.6,font:bold,color:ink});
+      cursor-=21;
+      page.drawLine({start:{x:x+pad,y:cursor+5},end:{x:x+width-pad,y:cursor+5},thickness:.6,color:line});
+      cursor-=12;
+      const records=section.table||[];
+      for(const row of records){
+        page.drawRectangle({x:x+pad,y:cursor-60,width:width-2*pad,height:68,color:pale});
+        label(row[0],x+pad+9,cursor-12,ink,10.2);
+        const fields=[['Inicial',row[1]],['Atual',row[2]],['Redução abs.',row[3]],['Redução rel.',row[4]]];
+        fields.forEach((field,i)=>{
+          const col=i%2,lineIndex=Math.floor(i/2),px=x+pad+9+col*(width-2*pad)/2,py=cursor-30-lineIndex*24;
+          label(field[0],px,py,mid,7);
+          page.drawText(tidy(field[1]),{x:px,y:py-12,size:9,font:bold,color:ink});
+        });
+        cursor-=77;
+      }
+      for(const item of section.lines||[]){
+        wrap(item,regular,8.3,width-2*pad).forEach(s=>{page.drawText(s,{x:x+pad,y:cursor,size:8.3,font:regular,color:mid});cursor-=12;});cursor-=3;
+      }
+      return cursor-10;
+    }
+    function hero(section,top){
+      const entries=(section.lines||[]).filter(Boolean);
+      const summary=wrap(entries[0]||'',bold,17,CW-40);
+      const explanations=entries.slice(1).flatMap(v=>wrap(v,regular,9.3,CW-40));
+      const h=45+summary.length*21+explanations.length*14;
+      page.drawRectangle({x:M,y:top-h,width:CW,height:h,color:ink});
+      page.drawRectangle({x:M,y:top-h,width:4,height:h,color:accent});
+      label('RESULTADO  /  '+brand,M+19,top-20,ice,7.8);
+      let cursor=top-46;
+      summary.forEach(s=>{page.drawText(s,{x:M+19,y:cursor,font:bold,size:17,color:white});cursor-=21;});
+      explanations.forEach(s=>{page.drawText(s,{x:M+19,y:cursor-3,font:regular,size:9.3,color:ice});cursor-=14;});
+      return top-h-20;
+    }
+    function ensure(height){if(y-height<66)newPage();}
+    newPage();fullHeader();
+    const isFibro=brand.toLowerCase().includes('fibro');
+    if(isFibro){
+      y=hero(sections[0],y);
+      const a=boxSection(sections[1],M,y,half,2);
+      const b=functionalCompact(sections[2],M,a-10,half);
+      const xRight=M+half+G;
+      const c=boxSection(sections[4],xRight,y,half,5);
+      const d=boxSection(sections[3],xRight,c-3,half,4);
+      const e=boxSection(sections[5],xRight,d-3,half,6);
+      y=Math.min(b,e);
+    }else{
+      // NoduleCare: dados do nódulo numa grelha, recomendação e cronograma.
+      y=hero(sections[1],y);
+      ensure(175);
+      const item=sections[0],data=(item.lines||[]).filter(Boolean);
+      const first={heading:item.heading,lines:data.slice(0,Math.ceil(data.length/2))};
+      const second={heading:'Perfil do achado',lines:data.slice(Math.ceil(data.length/2))};
+      const a=boxSection(first,M,y,half,1),b=boxSection(second,M+half+G,y,half,1);
+      y=Math.min(a,b)-14;
+      ensure(135);
+      y=tableSection(sections[2],M,y,CW,3)-8;
+      ensure(130);
+      y=boxSection(sections[3],M,y,CW,4);
+    }
+    const bytes=await pdf.save();
+    const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    const link=document.createElement('a');link.href=url;link.download=filename||'relatorio.pdf';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function newPage(){
-   page=pdf.addPage([W,H]);n++;y=H-48;
-   page.drawRectangle({x:0,y:H-5,width:W,height:5,color:c.ink});
-   page.drawLine({start:{x:L,y:49},end:{x:R,y:49},thickness:.65,color:c.line});
-   page.drawText(clean(brand)+'   /   DOCUMENTO CLÍNICO',{x:L,y:32,size:7.2,font:bold,color:c.muted});
-   page.drawText(String(n).padStart(2,'0'),{x:R-15,y:32,size:8,font:bold,color:c.muted});
-   if(n>1){page.drawText(clean(brand)+'  /  continuação',{x:L,y:H-47,size:10,font:bold,color:c.teal});y=H-72;}
-  }
-  function ensure(h){if(y-h<65)newPage();}
-  function write(value,{font=normal,size=9.5,color=c.ink,height=14,after=0,indent=0}={}){
-   for(const line of wrap(value,font,size,CW-indent)){ensure(height);page.drawText(line,{x:L+indent,y,font,size,color});y-=height;}y-=after;
-  }
-  let sectionNumber=0;
-  function heading(name){
-   ensure(45);y-=15;sectionNumber++;
-   page.drawText(String(sectionNumber).padStart(2,'0'),{x:L,y,size:9,font:bold,color:c.muted});
-   page.drawText(clean(name),{x:L+30,y:y-1,size:12.7,font:display,color:c.ink});
-   y-=12;page.drawLine({start:{x:L+30,y},end:{x:R,y},thickness:.65,color:c.line});y-=15;
-  }
-  function fieldLine(value){
-   const s=clean(value),m=s.match(/^([^:]{2,38}):\s*(.+)$/);
-   if(!m||m[2].length>72||s.includes('DOI:'))return false;
-   const label=wrap(m[1],bold,8.6,177),content=wrap(m[2],normal,9.2,CW-205);
-   const h=Math.max(22,Math.max(label.length,content.length)*13+10);ensure(h+2);
-   page.drawLine({start:{x:L+29,y:y-h+8},end:{x:R,y:y-h+8},thickness:.35,color:c.line});
-   label.forEach((line,i)=>page.drawText(line,{x:L+30,y:y-9-i*13,size:8.6,font:bold,color:c.muted}));
-   content.forEach((line,i)=>page.drawText(line,{x:L+209,y:y-9-i*13,size:9.2,font:normal,color:c.ink}));
-   y-=h;return true;
-  }
-  function table(section){
-   const cols=section.columns,rows=section.table;if(!cols?.length||!rows?.length)return;
-   const raw=section.widths||cols.map(()=>CW/cols.length),sum=raw.reduce((a,b)=>a+b,0);
-   const widths=raw.map(w=>w*(CW-29)/sum);
-   function row(cells,head){
-    const size=head?8.2:8.7,font=head?bold:normal;
-    const count=Math.max(1,...cells.map((v,i)=>wrap(v,font,size,widths[i]-16).length));
-    const height=Math.max(25,count*12.5+13);ensure(height+3);
-    if(head)page.drawRectangle({x:L+29,y:y-height+9,width:CW-29,height,color:c.pale});
-    page.drawLine({start:{x:L+29,y:y-height+9},end:{x:R,y:y-height+9},thickness:.5,color:c.line});
-    let x=L+29;cells.forEach((v,i)=>{wrap(v,font,size,widths[i]-16).forEach((line,j)=>page.drawText(line,{x:x+8,y:y-10-j*12.5,size,font,color:head?c.teal:c.ink}));x+=widths[i];});y-=height;
-   }
-   row(cols,true);rows.forEach(cells=>row(cells,false));y-=8;
-  }
-  newPage();
-  if(icon)page.drawImage(icon,{x:L,y:H-97,width:40,height:40});
-  page.drawText(clean(brand),{x:icon?L+53:L,y:H-76,font:bold,size:17,color:c.ink});
-  page.drawText('RELATÓRIO CLÍNICO  /  USO PROFISSIONAL',{x:icon?L+53:L,y:H-92,font:bold,size:7.4,color:c.muted});
-  page.drawLine({start:{x:L,y:H-112},end:{x:R,y:H-112},thickness:1.1,color:c.ink});
-  y=H-143;write(reportTitle,{font:display,size:21,height:26,after:5});
-  if(subtitle)write(subtitle,{size:8.5,height:13,color:c.muted,after:13});
-  for(const section of sections){
-   heading(section.heading);
-   const lines=(section.lines||[]).filter(v=>v!=null&&String(v).trim());
-   const emph=section.heading==='Conclusão'||section.heading==='Recomendação';
-   if(emph&&lines.length){
-    const parts=wrap(lines.shift(),bold,12.7,CW-62),h=parts.length*17+22;ensure(h+6);
-    page.drawRectangle({x:L+29,y:y-h+8,width:CW-29,height:h,color:c.pale});
-    page.drawRectangle({x:L+29,y:y-h+8,width:2,height:h,color:c.ink});
-    parts.forEach((line,i)=>page.drawText(line,{x:L+44,y:y-13-i*17,font:bold,size:12.7,color:c.ink}));y-=h+5;
-   }
-   if(section.table)table(section);
-   for(const line of lines){if(!fieldLine(line))write(line,{size:9.3,indent:30,after:4});}y-=8;
-  }
-  const bytes=await pdf.save(),url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-  const a=document.createElement('a');a.href=url;a.download=filename||'relatorio.pdf';document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
- }
- window.createClinicalPDF=createClinicalPDF;
+  window.createClinicalPDF=createClinicalPDF;
 })();
