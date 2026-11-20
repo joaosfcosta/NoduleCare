@@ -17,3 +17,44 @@ main{max-width:1352px;margin:auto;padding:0 36px}.intro{padding:47px 0 34px;max-
 @media(min-width:700px) and (max-width:1000px){.controls-card{display:grid;grid-template-columns:1fr 1fr;column-gap:25px}.controls-card>.section-heading{grid-column:span 2}.controls-card>.exclusion-panel{align-self:start}.controls-card>.risk-group{grid-row:span 2}}
 @media(max-width:600px){.site-header{padding:0 17px;height:74px}.brand-icon{width:40px;height:40px}.brand-name{font-size:20px}.brand-caption{letter-spacing:.09em;font-size:8px}.header-mark{display:none}.header-pill{font-size:10px;padding:8px 10px}main{padding:0 14px}.intro{padding:32px 4px 25px}.intro h1{font-size:30px}.intro p{font-size:14px}.app-grid{gap:15px}.controls-card,.timeline-card{padding:20px}.recommendation-overline{padding:19px 20px}.recommendation-content{margin:22px 20px 17px;gap:12px}.recommendation-symbol{width:42px;flex-basis:42px;height:42px}.recommendation-content h2{font-size:23px}.selection-tags{margin:0 20px 20px}.clinical-notice{margin:0 20px 20px}.morph-grid{gap:6px}.morph-card{height:112px;padding:5px 1px}.morph-label{font-size:12px}.morph-card small{font-size:9px}.section-heading{margin-bottom:22px}.control-group{margin-bottom:23px}.timeline-heading{align-items:flex-start}.timeline-heading h2{font-size:19px}.schedule-count{font-size:10px;padding:7px 9px}.site-footer{gap:12px}.timeline-actions button{flex:1}.event-window{font-size:16px}}
 @media print{.launch-screen{display:none!important}body{background:white;color:#000}.site-header{background:white;color:#172e3a;border-bottom:1px solid #aaa}.brand-icon{color:#144a4a;border:1px solid #bbb}.brand-name span{color:#174d48}.brand-caption{color:#555}.header-right,.intro,.controls-card,.timeline-actions,.date-input-wrap,.event-target,.toast{display:none!important}.app-grid{display:block}.results-col{display:block}.card{box-shadow:none;border:1px solid #bbb;margin-bottom:16px;break-inside:avoid}.timeline-card{break-inside:auto}.timeline-event{break-inside:avoid}.interpretation-card{border:1px solid #ccc;margin-top:15px}.site-footer{display:block}.site-footer .footer-note{margin-top:10px}.event-window{color:#000}.recommendation-content h2{color:#000}}
+
+/* Relatório clínico A4 autónomo, sem elementos da interface da aplicação. */
+.print-report{display:none}
+@page{size:A4;margin:14mm 15mm 16mm}
+@media print{
+  html,body{background:#fff!important;color:#1e3039!important;margin:0!important;padding:0!important;min-width:0!important}
+  .page-shell,.launch-screen,.toast{display:none!important}
+  .print-report{display:block!important;width:100%;margin:0;padding:0;font:10pt/1.42 Arial,Helvetica,sans-serif;color:#253641;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #176b67;padding:0 0 12px;margin-bottom:18px}
+  .report-brand{display:flex;align-items:center;gap:10px}.report-brand-icon{display:block;width:36px;height:36px;border-radius:8px}
+  .report-brand-name{font-size:19pt;font-weight:800;letter-spacing:-1px;color:#133542;line-height:1}.report-brand-name span{color:#176b67}
+  .report-brand-subtitle{font-size:6.6pt;letter-spacing:1px;font-weight:700;color:#66767e;margin-top:7px}
+  .report-guideline{text-align:right;font-size:7.2pt;line-height:1.6;letter-spacing:.7px;color:#526c73}.report-guideline strong{font-size:8.5pt;color:#214952}
+  .report-heading{margin:0 0 15px}.report-eyebrow{font-weight:800;font-size:7pt;letter-spacing:1.5px;color:#176b67}
+  .report-heading h1{font-size:17pt;letter-spacing:-.5px;line-height:1.2;margin:6px 0 4px;color:#173846;font-weight:800}.report-heading p{font-size:9pt;color:#647781;margin:0}
+  .report-dates{display:flex;gap:10px;margin:0 0 18px}.report-dates>div{border:1px solid #d9e1e4;border-radius:5px;padding:9px 12px;flex:1;min-width:0}
+  .report-dates span,.report-parameter span{display:block;color:#667981;font-size:7pt;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .report-dates strong{display:block;font-size:10.5pt;margin-top:4px;color:#213e4a}
+  .report-section{margin:0 0 17px;break-inside:avoid;page-break-inside:avoid}
+  .report-section h2{margin:0 0 9px;display:flex;align-items:center;gap:11px;font-size:8pt;font-weight:800;color:#23726c;letter-spacing:1px}
+  .report-section h2 span{color:#24424d;text-transform:uppercase;letter-spacing:.8px;font-size:8.4pt}
+  .report-parameters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:18px;row-gap:11px;padding:10px 12px;border:1px solid #dce4e7;border-radius:5px}
+  .report-parameter{min-width:0}.report-parameter strong{display:block;margin-top:3px;color:#213d4a;font-size:9.5pt;line-height:1.3;overflow-wrap:anywhere}
+  .report-recommendation{border:1px solid #c5d9d6;border-left:4px solid #176b67;border-radius:4px;padding:12px 14px;break-inside:avoid}
+  .report-recommendation[data-tone="warning"]{border-left-color:#a67930}.report-recommendation[data-tone="critical"]{border-left-color:#b35e51}
+  .report-recommendation-label{font-size:7.2pt;font-weight:800;letter-spacing:.7px;color:#1a7065}
+  .report-recommendation h3{font-size:13.2pt;line-height:1.27;font-weight:800;color:#173b48;margin:5px 0 5px}.report-recommendation p{font-size:9pt;line-height:1.45;margin:0;color:#3c525e}
+  .report-recommendation p.report-alert{font-size:8.6pt;border-top:1px solid #e2e7e9;margin-top:9px;padding-top:8px;color:#765736}
+  .report-recommendation[data-tone="critical"] p.report-alert{color:#8f493e}
+  .report-calendar{break-inside:auto;page-break-inside:auto}
+  .report-table{border-collapse:collapse;table-layout:fixed;width:100%;margin-top:7px;font-size:8.5pt}
+  .report-table th{text-align:left;border-bottom:1.5px solid #7f9ca1;padding:7px 8px;color:#314b56;font-size:7.3pt;text-transform:uppercase;letter-spacing:.25px}
+  .report-table th:nth-child(1){width:27%}.report-table th:nth-child(2){width:33%}.report-table th:nth-child(3){width:23%}.report-table th:nth-child(4){width:17%}
+  .report-table td{padding:8px;border-bottom:1px solid #dbe4e6;vertical-align:top;overflow-wrap:anywhere;line-height:1.35}.report-table td strong{font-weight:700;color:#223e4a}
+  .report-table tr{break-inside:avoid;page-break-inside:avoid}.report-table thead{display:table-header-group}
+  .report-empty{font-size:8.7pt;font-style:italic;color:#546b75;margin:7px 0 0}
+  .report-calendar-note{font-size:7.9pt;line-height:1.45;margin:9px 0 0;color:#526974}
+  .report-footer{margin-top:15px;border-top:1px solid #b8cbd0;padding-top:10px;break-inside:avoid;page-break-inside:avoid}
+  .report-footer p{font-size:7.7pt;line-height:1.45;margin:0 0 5px;color:#4a626d}.report-footer strong{color:#324d58}
+  .report-footer .report-disclaimer{font-size:7.4pt;color:#5f747c;margin-top:9px}
+}
