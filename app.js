@@ -199,8 +199,14 @@
         ...(state.morph === 'partsolid' ? [`Componente sólida: ${state.component === 'atleast6' ? '>=6 mm' : state.component === 'under6' ? '<6 mm' : 'não caracterizada'}.`] : [])
       ]},
       {heading:'Recomendação',lines:[plan.title,plan.description,...(plan.notice?[plan.notice]:[])]},
-      {heading:'Calendário de vigilância',lines: schedule.length ? schedule.map(event =>
-        `${event.title}: ${monthRange(event.from,event.to)}${event.flag === 'optional' ? ' (opcional)' : event.flag === 'conditional' ? ' (condicional)' : event.flag === 'decision' ? ' (decisão clínica)' : ''}${event.flag !== 'decision' ? '; mês escolhido: ' + formatMonth(event.target) : ''}.`) : [plan.empty]},
+      {heading:'Calendário de vigilância',lines: schedule.length ? [] : [plan.empty],
+        columns:['Controlo','Janela recomendada','Mês selecionado'],
+        widths:[163,179,157],
+        table:schedule.map(event=>[
+          `${event.title}${event.flag === 'optional' ? ' (opcional)' : event.flag === 'conditional' ? ' (condicional)' : event.flag === 'decision' ? ' (decisão clínica)' : ''}`,
+          monthRange(event.from,event.to),
+          event.flag === 'decision' ? 'A definir' : formatMonth(event.target)
+        ])},
       {heading:'Notas e referência',lines:[
         'As datas são orientadoras; reavaliar perante crescimento ou alteração morfológica.',
         'Fora do âmbito: idade inferior a 35 anos, TC de rastreio, imunossupressão ou neoplasia primária conhecida.',
