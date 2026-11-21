@@ -53,7 +53,6 @@
       if(icon)page.drawImage(icon,{x:M,y:top-49,width:43,height:43});
       label(brand,M+(icon?57:0),top-15,ink,16);
       label('Relatório clínico  /  uso profissional',M+(icon?57:0),top-31,mid,7.6);
-      label('A4   ·   DIGITAL',W-M-93,top-17,mid,7.5);
       page.drawLine({start:{x:M,y:top-62},end:{x:W-M,y:top-62},thickness:1,color:ink});
       page.drawText(tidy(description),{x:M,y:top-92,size:20,font:bold,color:ink});
       const details=wrap(subtitle||'',regular,9,CW);
