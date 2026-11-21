@@ -95,27 +95,28 @@
       return top-Math.max(62,top-cursor+3);
     }
     function tableSection(section,x,top,width,number){
+      const inset=14,tableX=x+inset,tableWidth=width-2*inset;
       let cursor=top-16;
-      label(String(number).padStart(2,'0'),x,cursor,accent,8);
-      page.drawText(tidy(section.heading),{x:x+27,y:cursor-1,size:10.8,font:bold,color:ink});
+      label(String(number).padStart(2,'0'),tableX,cursor,accent,8);
+      page.drawText(tidy(section.heading),{x:tableX+27,y:cursor-1,size:10.8,font:bold,color:ink});
       cursor-=21;
       const cols=section.columns||[],rows=section.table||[];
       const raw=section.widths||cols.map(()=>1),total=raw.reduce((a,b)=>a+b,0);
-      const widths=raw.map(v=>v*width/total);
+      const widths=raw.map(v=>v*tableWidth/total);
       const row=(cells,header=false,index=0)=>{
         const size=header?7.5:8.5,font=header?bold:regular;
         const wrapped=cells.map((v,i)=>wrap(v,font,size,widths[i]-12));
         const height=Math.max(header?24:25,Math.max(...wrapped.map(v=>v.length),1)*11.4+11);
-        if(header||index%2===0)page.drawRectangle({x,y:cursor-height+7,width,height,color:header?ice:pale});
-        let colx=x;
+        if(header||index%2===0)page.drawRectangle({x:tableX,y:cursor-height+7,width:tableWidth,height,color:header?ice:pale});
+        let colx=tableX;
         wrapped.forEach((lines,i)=>{lines.forEach((s,j)=>page.drawText(s,{x:colx+6,y:cursor-9-j*11.4,size,font,color:header?mid:ink}));colx+=widths[i];});
         cursor-=height;
-        page.drawLine({start:{x,y:cursor+7},end:{x:x+width,y:cursor+7},thickness:.4,color:line});
+        page.drawLine({start:{x:tableX,y:cursor+7},end:{x:tableX+tableWidth,y:cursor+7},thickness:.4,color:line});
       };
       row(cols,true);rows.forEach((r,i)=>row(r,false,i));
       cursor-=13;
       for(const item of section.lines||[]){
-        wrap(item,regular,8.7,width).forEach(s=>{page.drawText(s,{x,y:cursor,size:8.7,font:regular,color:mid});cursor-=12;});cursor-=5;
+        wrap(item,regular,8.7,tableWidth).forEach(s=>{page.drawText(s,{x:tableX,y:cursor,size:8.7,font:regular,color:mid});cursor-=12;});cursor-=5;
       }
       return cursor;
     }
