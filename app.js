@@ -210,7 +210,7 @@
       {heading:'Notas e referência',lines:[
         'As datas representam janelas orientadoras. Os controlos subsequentes pressupõem persistência ou estabilidade. Crescimento, novas características suspeitas ou contexto clínico relevante exigem reavaliação da conduta. Esta é uma ferramenta de apoio à decisão e não substitui o juízo clínico.',
         'FORA DO ÂMBITO: Idade inferior a 35 anos, TC de rastreio, Imunossupressão ou neoplasia primária conhecida.',
-        'MacMahon H et al. Radiology. 2017;284:228-243. DOI: 10.1148/radiol.2017161659.'
+        'MacMahon H, et al. Guidelines for Management of Incidental Pulmonary Nodules Detected on CT Images: From the Fleischner Society 2017. Radiology. 2017;284:228–243. DOI: 10.1148/radiol.2017161659'
       ]}
     ];
     const button = $('print-plan');
