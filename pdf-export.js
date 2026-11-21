@@ -1,9 +1,9 @@
 (function(){
   'use strict';
   // Relatório produzido exclusivamente no navegador.
-  const tidy=value=>String(value??'').replace(/[−–—]/g,'-').replace(/[•·]/g,' · ')
+  const tidy=value=>String(value??'').replace(/[−—]/g,'-').replace(/[•·]/g,' · ')
     .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/→/g,'->').replace(/Δ/g,'Delta')
-    .replace(/[\u00a0\u202f]/g,' ').replace(/[^\x20-\x7e\xa0-\xff\n]/g,'');
+    .replace(/[\u00a0\u202f]/g,' ').replace(/[^\x20-\x7e\xa0-\xff\u2013\n]/g,'');
 
   async function createClinicalPDF({title,subtitle,sections,filename,logo}){
     const lib=window.PDFLib;if(!lib)throw Error('O módulo PDF não está disponível.');
@@ -12,6 +12,7 @@
     pdf.setSubject('Relatório de apoio à decisão clínica');
     const regular=await pdf.embedFont(StandardFonts.Helvetica);
     const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+    const italic=await pdf.embedFont(StandardFonts.HelveticaOblique);
     let icon=null;
     try{if(logo){const r=await fetch(logo);if(r.ok)icon=await pdf.embedPng(await r.arrayBuffer());}}catch{}
     const ink=rgb(.09,.15,.22),mid=rgb(.39,.45,.51),accent=rgb(.19,.38,.57);
@@ -153,6 +154,33 @@
       page.drawLine({start:{x:x+14,y:cursor+5},end:{x:x+width-14,y:cursor+5},thickness:.6,color:line});
       cursor-=13;
       const entries=(section.lines||[]).filter(Boolean);
+      const textX=x+14,textWidth=width-28;
+      function drawParagraph(value,justify){
+        const size=8.8,lines=wrap(value,regular,size,textWidth);
+        lines.forEach((lineText,index)=>{
+          const words=lineText.split(' ');
+          if(justify&&index<lines.length-1&&words.length>1){
+            const wordWidth=words.reduce((sum,word)=>sum+regular.widthOfTextAtSize(word,size),0);
+            const gap=(textWidth-wordWidth)/(words.length-1);
+            let pos=textX;
+            for(const word of words){page.drawText(word,{x:pos,y:cursor,size,font:regular,color:ink});pos+=regular.widthOfTextAtSize(word,size)+gap;}
+          }else page.drawText(lineText,{x:textX,y:cursor,size,font:regular,color:ink});
+          cursor-=12.5;
+        });
+      }
+      function drawReference(value){
+        const size=8.1,words=tidy(value).split(/\s+/).filter(Boolean);
+        const space=regular.widthOfTextAtSize(' ',size);
+        let pos=textX;
+        for(const word of words){
+          const font=word==='Radiology.'?italic:regular;
+          const wordWidth=font.widthOfTextAtSize(word,size);
+          if(pos>textX&&pos+wordWidth>textX+textWidth){pos=textX;cursor-=12.5;}
+          page.drawText(word,{x:pos,y:cursor,size,font,color:mid});
+          pos+=wordWidth+space;
+        }
+        cursor-=12.5;
+      }
       // Texto clínico e bibliografia são blocos diferentes, nunca campos de formulário.
       for(let i=0;i<entries.length;i++){
         const raw=tidy(entries[i]);
@@ -161,14 +189,11 @@
           const cut=raw.indexOf(':');
           label(raw.slice(0,cut),x+14,cursor,mid,7.5);
           cursor-=13;
-          for(const lineText of wrap(raw.slice(cut+1).trim(),regular,8.8,width-28)){
-            page.drawText(lineText,{x:x+14,y:cursor,size:8.8,font:regular,color:ink});cursor-=12.5;
-          }
+          drawParagraph(raw.slice(cut+1).trim(),true);
         }else{
           if(isReference){cursor-=4;page.drawLine({start:{x:x+14,y:cursor+4},end:{x:x+width-14,y:cursor+4},thickness:.5,color:line});cursor-=10;label('Referência científica',x+14,cursor,mid,7.3);cursor-=13;}
-          for(const lineText of wrap(raw,regular,isReference?8.1:8.8,width-28)){
-            page.drawText(lineText,{x:x+14,y:cursor,size:isReference?8.1:8.8,font:regular,color:isReference?mid:ink});cursor-=12.5;
-          }
+          if(isReference)drawReference(raw);
+          else drawParagraph(raw,true);
         }
         cursor-=9;
       }
