@@ -208,8 +208,8 @@
           event.flag === 'decision' ? 'A definir' : formatMonth(event.target)
         ])},
       {heading:'Notas e referência',lines:[
-        'As datas são orientadoras; reavaliar perante crescimento ou alteração morfológica. Esta ferramenta é de apoio à decisão e não substitui o juízo clínico.',
-        'Fora do âmbito: idade inferior a 35 anos, TC de rastreio, imunossupressão ou neoplasia primária conhecida.',
+        'As datas representam janelas orientadoras. Os controlos subsequentes pressupõem persistência ou estabilidade. Crescimento, novas características suspeitas ou contexto clínico relevante exigem reavaliação da conduta. Esta é uma ferramenta de apoio à decisão e não substitui o juízo clínico.',
+        'FORA DO ÂMBITO: Idade inferior a 35 anos, TC de rastreio, Imunossupressão ou neoplasia primária conhecida.',
         'MacMahon H et al. Radiology. 2017;284:228-243. DOI: 10.1148/radiol.2017161659.'
       ]}
     ];
