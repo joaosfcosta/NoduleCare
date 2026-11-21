@@ -191,12 +191,12 @@
     const today = new Intl.DateTimeFormat('pt-PT',{day:'numeric',month:'long',year:'numeric'}).format(new Date());
     const sections = [
       {heading:'Características do nódulo',lines:[
-        `TC inicial: ${formatMonth(baseline)}.`,
-        `Morfologia: ${state.morph === 'solid' ? 'Sólido' : state.morph === 'partsolid' ? 'Parcialmente sólido' : 'Vidro despolido puro'}.`,
-        `Dimensão: ${state.size === 'small' ? '<6 mm' : state.size === 'medium' ? '6-8 mm' : '>8 mm'}.`,
-        `Número: ${state.number === 'single' ? 'Solitário' : 'Múltiplos'}.`,
-        ...(state.morph === 'solid' ? [`Estratificação: ${state.risk === 'high' ? 'Alto risco' : 'Baixo risco'}.`] : []),
-        ...(state.morph === 'partsolid' ? [`Componente sólida: ${state.component === 'atleast6' ? '>=6 mm' : state.component === 'under6' ? '<6 mm' : 'não caracterizada'}.`] : [])
+        `TC inicial: ${formatMonth(baseline)}`,
+        `Morfologia: ${state.morph === 'solid' ? 'Sólido' : state.morph === 'partsolid' ? 'Parcialmente sólido' : 'Vidro despolido puro'}`,
+        `Dimensão: ${state.size === 'small' ? '<6 mm' : state.size === 'medium' ? '6-8 mm' : '>8 mm'}`,
+        `Número: ${state.number === 'single' ? 'Solitário' : 'Múltiplos'}`,
+        ...(state.morph === 'solid' ? [`Estratificação: ${state.risk === 'high' ? 'Alto risco' : 'Baixo risco'}`] : []),
+        ...(state.morph === 'partsolid' ? [`Componente sólida: ${state.component === 'atleast6' ? '>=6 mm' : state.component === 'under6' ? '<6 mm' : 'não caracterizada'}`] : [])
       ]},
       {heading:'Recomendação',lines:[plan.title,plan.description,...(plan.notice?[plan.notice]:[])]},
       {heading:'Calendário de vigilância',lines: schedule.length ? [] : [plan.empty],
