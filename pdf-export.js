@@ -50,7 +50,7 @@
     }
     function fullHeader(){
       const top=H-39;
-      if(icon)page.drawImage(icon,{x:M,y:top-49,width:43,height:43});
+      if(icon)page.drawImage(icon,{x:M,y:top-43,width:43,height:43});
       label(brand,M+(icon?57:0),top-15,ink,16);
       label('Relatório clínico  /  uso profissional',M+(icon?57:0),top-31,mid,7.6);
       page.drawLine({start:{x:M,y:top-62},end:{x:W-M,y:top-62},thickness:1,color:ink});
@@ -205,7 +205,7 @@
       const h=45+summary.length*21+explanations.length*14;
       page.drawRectangle({x:M,y:top-h,width:CW,height:h,color:ink});
       page.drawRectangle({x:M,y:top-h,width:4,height:h,color:accent});
-      label('RESULTADO  /  '+brand,M+19,top-20,ice,7.8);
+      label('RESULTADO',M+19,top-20,ice,7.8);
       let cursor=top-46;
       summary.forEach(s=>{page.drawText(s,{x:M+19,y:cursor,font:bold,size:17,color:white});cursor-=21;});
       explanations.forEach(s=>{page.drawText(s,{x:M+19,y:cursor-3,font:regular,size:9.3,color:ice});cursor-=14;});
